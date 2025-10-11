@@ -1,0 +1,14 @@
+# virtual environments
+movement_visualizer/xenobot_env/
+venv/
+env/
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.Python
+
+# MacOS
+.DS_Store
