@@ -1,8 +1,9 @@
-# virtual environments
+# Virtual environments
 movement_visualizer/xenobot_env/
 venv/
 env/
 .env
+.venv
 
 # Python cache
 __pycache__/
@@ -12,3 +13,11 @@ __pycache__/
 
 # MacOS
 .DS_Store
+
+# R
+.RData
+.Rhistory
+
+# Misc
+Icon
+graph_annotated.py
