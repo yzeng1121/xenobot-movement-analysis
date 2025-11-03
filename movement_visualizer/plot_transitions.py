@@ -306,7 +306,7 @@ def plot_transition_heat_map(transition_matrix, title = "Xenobot Movement State 
 
     plt.show()
 
-
+# plot as graphs w/ vertices + edges
 def plot_transition_graph(transition_matrix, title = "Xenobot Movement State Transition Probabilities"):
     G = nx.DiGraph()
 
@@ -507,6 +507,3 @@ if __name__ == '__main__':
         centers_original = scaler.inverse_transform(centers)
         centers_df = pd.DataFrame(centers_original, columns = features)
         centers_df.to_csv('cec_cluster_centers.csv', index = False)
-        
-        print("\n[INFO] Analysis complete! Files saved.")
-        print("[INFO] Note: Results are now reproducible with random_seed=42")
