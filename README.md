@@ -69,4 +69,4 @@ Contributors names and contact info
 ### Acknowledgments
 
 Inspiration, code snippets, etc.
-* [algorithm](https://www.science.org/doi/10.1126/scirobotics.abf1571)
+* [A cellular platform for the development of synthetic living machines](https://www.science.org/doi/10.1126/scirobotics.abf1571)
