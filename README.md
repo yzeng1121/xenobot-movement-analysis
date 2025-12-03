@@ -62,9 +62,9 @@ Please contact me at yu.zeng@tufts.edu for any issues or concerns.
 
 Contributors names and contact info
 
-author: [Yuxin Zeng](https://www.linkedin.com/in/yuxzeng/)
-principle investigator: [Vaibhav Pai](https://www.linkedin.com/in/paivaibhav/)
-algorithm developer: [Simon Garnier](https://www.linkedin.com/in/simongarnier/)
+* author: [Yuxin Zeng](https://www.linkedin.com/in/yuxzeng/)
+* principle investigator: [Vaibhav Pai](https://www.linkedin.com/in/paivaibhav/)
+* algorithm developer: [Simon Garnier](https://www.linkedin.com/in/simongarnier/)
 
 ### Acknowledgments
 
