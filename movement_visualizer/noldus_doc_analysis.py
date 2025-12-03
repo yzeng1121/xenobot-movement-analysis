@@ -603,6 +603,7 @@ def analyze_combined_xenobots(
 
 
 def main():
+    # TODO: input the file paths of your CSV files here
     file_paths = [
         '/Users/yuxin/Downloads/ethovision_csv_files/raw-data-tracking-sub1.csv',
         '/Users/yuxin/Downloads/ethovision_csv_files/raw-data-tracking-sub2.csv',

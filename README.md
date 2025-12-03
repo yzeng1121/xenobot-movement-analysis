@@ -1,23 +1,28 @@
-# Xenobot Movement Analysis Using Transition Probability Matrices
+## Xenobot Movement State Analysis
 
 Refurbished pipeline for analyzing changes in xenobot movement after applying stimulus.
 
-## Description
+### Description
 
 Taking time-lapse videos of xenobot movements over long periods of time, their movement
-coordinates are tracked and recorded. Each video is divided up into 30-second chunks and
-analyzed, checking for changes in movement behavior.
+coordinates are tracked and recorded. Each video is divided up into 30-second chunks, and metrics
+such as linear speed, heading, and angular speeds are measured to allow for analysis. This
+data is then used to categorize each timestamp into a specific movement state: linear, circular, or
+idle.
 
-## Getting Started
+### Getting Started
+Fork the repository, open up VS Code, and clone the repository you had just forked.
+This should open up the repository on your VS Code. 
 
-### Dependencies
-# Make sure to download Python3.12 on your device
+**Dependencies**
+Make sure to download Python3.12 on your device.
+Open up a terminal window and run the following commands.
 For MacOS, it's the following command (assuming you have HomeBrew).
 ```
 brew install Python3.12
 ```
 
-# Set Up a Local Python Environment 
+Set Up a Local Python Environment
 ```
 cd movement_visualizer
 ```
@@ -35,42 +40,33 @@ pip install -r requirements.txt
 
 ### Executing program
 
-How to run the program:
-* use trackR to obtain movement metrics/coordinates of xenobots
-* use trackFixer to revise xenobot tracking annotations
-* move into the correct directory
+**How to run the pipeline:**
+* use Noldus software to track and output the CSV file with tracking data from your xenobots
+* this tutorial assumes that you have a single xenobot for each CSV file
+* the function **load_data** will extract the appropriate columns with data & convert the velocity metrics
+from minutes to seconds
+* in the **main** function, replacing all of the file paths with the file paths of your own CSV files
+* run the following commands to return visuals
 ```
 cd movement_visualizer
 ```
-* run the calculate.py file to obtain linear speed, headings, & angular speed 
 ```
-python calculate.py
-```
-* using the calculated metrics, run graph.py to visualize the changes in states
-```
-python graph.py
+python noldus_doc_analysis.py
 ```
 
-## Help
+### Help
 
 Please contact me at yu.zeng@tufts.edu for any issues or concerns.
 
-## Authors
+### Authors
 
 Contributors names and contact info
 
-ex. Dominique Pizzie  
-ex. [@DomPizzie](https://twitter.com/dompizzie)
+author: [Yuxin Zeng](https://www.linkedin.com/in/yuxzeng/)
+principle investigator: [Vaibhav Pai](https://www.linkedin.com/in/paivaibhav/)
+algorithm developer: [Simon Garnier](https://www.linkedin.com/in/simongarnier/)
 
-## License
-
-This project is licensed under the [NAME HERE] License - see the LICENSE.md file for details
-
-## Acknowledgments
+### Acknowledgments
 
 Inspiration, code snippets, etc.
-* [awesome-readme](https://github.com/matiassingers/awesome-readme)
-* [PurpleBooth](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
-* [dbader](https://github.com/dbader/readme-template)
-* [zenorocha](https://gist.github.com/zenorocha/4526327)
-* [fvcproductions](https://gist.github.com/fvcproductions/1bfc2d4aecb01a834b46)
+* [algorithm](https://www.science.org/doi/10.1126/scirobotics.abf1571)
