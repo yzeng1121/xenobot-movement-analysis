@@ -2,6 +2,8 @@
 
 Refurbished pipeline for analyzing changes in xenobot movement after applying stimulus.
 
+![State Transition Diagram](sample_output/prob_matrix_sample.png)
+
 ### Description
 
 Taking time-lapse videos of xenobot movements over long periods of time, their movement
