@@ -66,7 +66,7 @@ from minutes to seconds
 cd movement_visualizer
 ```
 ```
-python noldus_doc_analysis.py
+python main.py
 ```
 
 ### Help
