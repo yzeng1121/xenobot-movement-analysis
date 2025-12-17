@@ -26,6 +26,13 @@ try:
 except Exception as e:
     raise ImportError("error: R packages failed to be installed") from e
 
+
+#  name:      load_data
+#  purpose:   takes in csv file and stores it into a Python dataframe/array allowing the program
+#             to manipulate and analyze
+#  arguments: file path of Noldus csv file in user's computer
+#  returns:   the dataframe populated with input
+#  effects:   converts angular and linear speed units to per sec rather than per min
 def load_data(file_path):
     if file_path.endswith('.csv'):
         encodings_to_try = ['utf-8', 'latin-1', 'iso-8859-1', 'cp1252', 'utf-16']
@@ -80,14 +87,17 @@ def load_data(file_path):
         'trial_time': 'time'
     })
 
-    df = convert_velocity_to_per_sec(df)
+    df = convert_velocity_units(df)
 
     return df
 
-# TODO: ask Pai if time is mins as well rather than secs
 
-# def method to convert per min to per sec (angular and linear velocity)
-def convert_velocity_to_per_sec(df):
+#  name:      convert velocity units
+#  purpose:   converts per min to per sec (angular and linear velocity)
+#  arguments: populated data frame
+#  returns:   the data frame with fixed velocity units
+#  effects:   converts angular and linear speed units to per sec rather than per min
+def convert_velocity_units(df):
     if 'linear_speed' in df.columns:
         df['linear_speed'] = df['linear_speed'] / 60.0
 
@@ -97,6 +107,12 @@ def convert_velocity_to_per_sec(df):
     return df
 
 
+#  name:      break into chunks
+#  purpose:   breaks the data frame into 30 second chunks at 30fps
+#  arguments: data frame, duration of chunks (30 seconds matches the research paper), frames per 
+#             second
+#  returns:   array of time chunks
+#  effects:   none
 def break_into_chunks(df, chunk_duration_secs = 30, fps = 30):
     chunks = []
     chunk_duration_frames = chunk_duration_secs * fps
@@ -123,7 +139,16 @@ def break_into_chunks(df, chunk_duration_secs = 30, fps = 30):
     return chunks
 
 
-def calculate_metrics(chunk):
+#  name:      calculate metrics
+#  purpose:   calculates the straightness index as 1 minus the circular variance of the headings
+#             during the block and the gyration index as 1 minus the circular variance of the and
+#             averages to allow for relative comparison
+#             angular speeds during the block divided by the circular variance of the angular speeds
+#  arguments: data in chunks, reference circular variance i.e. circular variance of the angular 
+#             speeds
+#  returns:   array of the calculated metrics
+#  effects:   none
+def calculate_metrics(chunk, ref_ang_circvar):
     data = chunk['data']
 
     if len(data) < 2:
@@ -131,8 +156,9 @@ def calculate_metrics(chunk):
     
     straightness = 1 - circvar(np.radians(data['heading'].dropna()))
 
-    if not data['angular_speed'].isna().all():
-        gyration = 1 - circvar(np.radians(data['angular_speed'].dropna()))
+    if not data['angular_speed'].isna().all() and ref_ang_circvar > 0:
+        chunk_circvar = circvar(np.radians(data['angular_speed'].dropna()))
+        gyration = 1 - (chunk_circvar / ref_ang_circvar)
     else:
         gyration = 0
 
@@ -147,7 +173,28 @@ def calculate_metrics(chunk):
     return features
 
 
-# TODO: reach out to figure out what specific covariance type they used for their CEC algorithm
+#  name:      compute ref angular circvar
+#  purpose:   calculates the reference angular circular variance of angular speeds
+#  arguments: populated data frame
+#  returns:   reference angular circular variance of angular speeds
+#  effects:   none
+def compute_ref_angular_circvar(df):
+    ang = np.radians(df['angular_speed'].dropna().values)
+    if len(ang) < 2:
+        return np.nan
+    return circvar(ang)
+
+
+#  name:      fit cec clustering
+#  purpose:   uses R's CEC package to separate the trajectory chunks into categories of similar 
+#             state behaviors
+#  arguments: data frame holding data about each time chunk, the number of states in which case will 
+#             always be 4 (idle, circling, linear, intermediate), the covariance type for the CEC 
+#             package, which will be the default (spherical), the number of iterations to run the 
+#             algorithm, arbitrarily choose to be 25, and the random seed set default to be 42 to 
+#             allow for replicability
+#  returns:   data frame of all clusters taken from the CEC algorithm
+#  effects:   none
 def fit_cec_clustering(
         features_df, 
         n_states = 4,
@@ -230,32 +277,40 @@ def fit_cec_clustering(
         raise RuntimeError(f"cec clustering failed: {e}")
 
 
+#  name:      label states
+#  purpose:   classifies each time chunk as one of the four states and adds a new row to the data
+#             frame
+#  arguments: data frame holding pre-existing time chunk data
+#  returns:   revised data frame
+#  effects:   none
 def label_states(features_df):
-    features = ['mean_speed', 'straightness', 'gyration', 'mean_angular_speed']
-    state_means = features_df.groupby('state')[features].mean()
-
     speed_25 = features_df['mean_speed'].quantile(0.25)
     straight_25 = features_df['straightness'].quantile(0.25)
     straight_75 = features_df['straightness'].quantile(0.75)
-
-    labels = {}
-
-    for state in state_means.index:
-        mean_speed = state_means.loc[state, 'mean_speed']
-        straightness = state_means.loc[state, 'straightness']
-
-        if mean_speed < speed_25:
-            labels[state] = 'idle'
+    
+    labels = []
+    
+    for idx, row in features_df.iterrows():
+        speed = row['mean_speed']
+        straightness = row['straightness']
+        
+        if speed < speed_25: # low speed (bottom 25%)
+            labels.append('idle')
         elif straightness > straight_75:
-            labels[state] = 'linear'
-        elif straightness < straight_25:
-            labels[state] = 'circling'
-        else:
-            labels[state] = 'intermediate'
-
+            labels.append('linear') # high straightness AND NOT idle
+        elif straightness < straight_25: # low straightness AND NOT idle  
+            labels.append('circling')
+        else: # everything else
+            labels.append('intermediate')
+    
     return labels
 
 
+#  name:      calculate transition probabilities
+#  purpose:   calculates the transition probabilities between states according to data from chunks
+#  arguments: data frame holding pre-existing time chunk data
+#  returns:   array holding probabilities of transition states
+#  effects:   none
 def calculate_transition_probabilities(features_df):
     features_df = features_df.sort_values('chunk_start').reset_index(drop = True)
 
@@ -282,7 +337,12 @@ def calculate_transition_probabilities(features_df):
     return transition_matrix
 
 
-# TODO: consider adding path to save diagram to
+#  name:      plot transition heatmap
+#  purpose:   plots state transition probability matrix on user's screen
+#  arguments: array holding probabilities of transition states, title of the output state 
+#             transition probability matrix
+#  returns:   none
+#  effects:   none
 def plot_transition_heatmap(transition_matrix, title = "State Transition Probabilities"):
     plt.figure(figsize = (8, 6))
     sns.heatmap(
@@ -303,6 +363,11 @@ def plot_transition_heatmap(transition_matrix, title = "State Transition Probabi
     plt.close()
 
 
+#  name:      plot clustering scatter
+#  purpose:   plots state clustering scatterplot on user's screen
+#  arguments: array holding probabilities of transition states, title of the output scatterplot
+#  returns:   none
+#  effects:   none
 def plot_clustering_scatter(features_df, title = "Movement State Clustering"):
     fig, ax = plt.subplots(figsize = (10, 8))
 
@@ -339,6 +404,11 @@ def plot_clustering_scatter(features_df, title = "Movement State Clustering"):
     plt.close()
 
 
+#  name:      plot markov chain
+#  purpose:   plots markov chain on user's screen
+#  arguments: array holding probabilities of transition states, title of the output markov chain
+#  returns:   none
+#  effects:   none
 def plot_markov_chain(transition_matrix, title = "Markov Chain State Transitions"):
     fig, ax = plt.subplots(figsize = (12, 10))
 
@@ -495,6 +565,13 @@ def plot_markov_chain(transition_matrix, title = "Markov Chain State Transitions
     plt.close()
 
 
+#  name:      analyze single xenobot
+#  purpose:   converts a single xenobot's trajectory data into chunks then clusters, then into  
+#             movement states and then plots the features for an individual xenobot
+#  arguments: path to file, number of states, duration of a single chunk, fps, covariance type for
+#             cec algorithm, random seed arbitrarly at 42 to allow replication
+#  returns:   array holding probabilities of transition states, state transition probability matrix 
+#  effects:   none
 def analyze_single_xenobot(
         file_path, 
         n_states = 4, 
@@ -505,9 +582,14 @@ def analyze_single_xenobot(
     ):
  
     df = load_data(file_path)
-    chunks = break_into_chunks(df, chunk_duration_secs=chunk_duration, fps=fps)
- 
-    features = [calculate_metrics(chunk) for chunk in chunks]
+    chunks = break_into_chunks(df, chunk_duration_secs = chunk_duration, fps = fps)
+    
+    ref_ang_circvar = compute_ref_angular_circvar(df)
+    
+    features = [
+        calculate_metrics(chunk, ref_ang_circvar)
+        for chunk in chunks
+    ]
     features = [f for f in features if f is not None]
     features_df = pd.DataFrame(features)
 
@@ -519,15 +601,20 @@ def analyze_single_xenobot(
     )
     
     features_df['state'] = clusters
-    
-    state_labels = label_states(features_df)
-    features_df['state_label'] = features_df['state'].map(state_labels)
+    features_df['state_label'] = label_states(features_df)
 
     transition_matrix = calculate_transition_probabilities(features_df)
     
     return features_df, transition_matrix
 
 
+#  name:      analyze combined xenobot
+#  purpose:   converts multiple xenobot's trajectory data into chunks then clusters, then into  
+#             movement states and then plots the features for all xenobots
+#  arguments: path to file, number of states, duration of a single chunk, fps, covariance type for
+#             cec algorithm, random seed arbitrarly at 42 to allow replication
+#  returns:   array holding probabilities of transition states, state transition probability matrix 
+#  effects:   none
 def analyze_combined_xenobots(
         file_paths, 
         n_states = 4, 
@@ -538,6 +625,11 @@ def analyze_combined_xenobots(
     ):
     
     all_features = []
+
+    all_dfs = [load_data(fp) for fp in file_paths]
+    combined_df = pd.concat(all_dfs, ignore_index=True)
+
+    ref_ang_circvar = compute_ref_angular_circvar(combined_df)
     
     for i, file_path in enumerate(file_paths, 1):
         # load data
@@ -546,7 +638,10 @@ def analyze_combined_xenobots(
 
         chunks = break_into_chunks(df, chunk_duration_secs=chunk_duration, fps=fps)
         
-        features = [calculate_metrics(chunk) for chunk in chunks]
+        features = [
+            calculate_metrics(chunk, ref_ang_circvar)
+            for chunk in chunks
+        ]
         features = [f for f in features if f is not None]
 
         for feature_dict in features:
@@ -555,10 +650,9 @@ def analyze_combined_xenobots(
         
         all_features.extend(features)
         
-        features_df_temp = pd.DataFrame(features)
     
     combined_features_df = pd.DataFrame(all_features)
-    print(f"\nTotal chunks across all xenobots: {len(combined_features_df)}")
+    print(f"\total chunks across all xenobots: {len(combined_features_df)}")
     print(f"overall mean speed: {combined_features_df['mean_speed'].mean():.2f} mm/s")
     print(f"overall mean straightness: {combined_features_df['straightness'].mean():.3f}")
     print(f"overall mean gyration: {combined_features_df['gyration'].mean():.3f}")
@@ -571,9 +665,7 @@ def analyze_combined_xenobots(
     )
     
     combined_features_df['state'] = clusters
-    
-    state_labels = label_states(combined_features_df)
-    combined_features_df['state_label'] = combined_features_df['state'].map(state_labels)
+    combined_features_df['state_label'] = label_states(combined_features_df)
  
     for state_label, count in combined_features_df['state_label'].value_counts().items():
         percentage = (count / len(combined_features_df)) * 100
@@ -602,16 +694,24 @@ def analyze_combined_xenobots(
     return combined_features_df, combined_transition_matrix
 
 
+
+#  name:      main
+#  purpose:   driver function
+#  arguments: none
+#  returns:   none
+#  effects:   none
 def main():
     # TODO: input the file paths of your CSV files here
+    # NOTE: program assumes that each CSV file includes a single xenobot's data
     file_paths = [
-        '/Users/yuxin/Downloads/ethovision_csv_files/raw-data-tracking-sub1.csv',
-        '/Users/yuxin/Downloads/ethovision_csv_files/raw-data-tracking-sub2.csv',
-        '/Users/yuxin/Downloads/ethovision_csv_files/raw-data-tracking-sub3.csv',
-        '/Users/yuxin/Downloads/ethovision_csv_files/raw-data-tracking-sub4.csv',
-        '/Users/yuxin/Downloads/ethovision_csv_files/raw-data-tracking-sub5.csv',
-        '/Users/yuxin/Downloads/ethovision_csv_files/raw-data-tracking-sub6.csv',
-        '/Users/yuxin/Downloads/ethovision_csv_files/raw-data-tracking-sub7.csv'
+        '/Users/yuxin/Desktop/xenobots/movement_visualizer/sample_data/sample_mixed_1.csv',
+        '/Users/yuxin/Desktop/xenobots/movement_visualizer/sample_data/sample_mixed_2.csv',
+        '/Users/yuxin/Desktop/xenobots/movement_visualizer/sample_data/sample_mixed_3.csv',
+        '/Users/yuxin/Desktop/xenobots/movement_visualizer/sample_data/sample_mixed_4.csv',
+        '/Users/yuxin/Desktop/xenobots/movement_visualizer/sample_data/sample_mixed_5.csv',
+        '/Users/yuxin/Desktop/xenobots/movement_visualizer/sample_data/sample_mixed_6.csv',
+        '/Users/yuxin/Desktop/xenobots/movement_visualizer/sample_data/sample_mixed_7.csv',
+        '/Users/yuxin/Desktop/xenobots/movement_visualizer/sample_data/sample_mixed_8.csv'
     ]
     
 
