@@ -704,14 +704,14 @@ def main():
     # TODO: input the file paths of your CSV files here
     # NOTE: program assumes that each CSV file includes a single xenobot's data
     file_paths = [
-        '/Users/yuxin/Desktop/xenobots/movement_visualizer/sample_data/sample_mixed_1.csv',
-        '/Users/yuxin/Desktop/xenobots/movement_visualizer/sample_data/sample_mixed_2.csv',
-        '/Users/yuxin/Desktop/xenobots/movement_visualizer/sample_data/sample_mixed_3.csv',
-        '/Users/yuxin/Desktop/xenobots/movement_visualizer/sample_data/sample_mixed_4.csv',
-        '/Users/yuxin/Desktop/xenobots/movement_visualizer/sample_data/sample_mixed_5.csv',
-        '/Users/yuxin/Desktop/xenobots/movement_visualizer/sample_data/sample_mixed_6.csv',
-        '/Users/yuxin/Desktop/xenobots/movement_visualizer/sample_data/sample_mixed_7.csv',
-        '/Users/yuxin/Desktop/xenobots/movement_visualizer/sample_data/sample_mixed_8.csv'
+        '/Users/yuxin/Desktop/xenobots/sample_data/sample_mixed_1.csv',
+        '/Users/yuxin/Desktop/xenobots/sample_data/sample_mixed_2.csv',
+        '/Users/yuxin/Desktop/xenobots/sample_data/sample_mixed_3.csv',
+        '/Users/yuxin/Desktop/xenobots/sample_data/sample_mixed_4.csv',
+        '/Users/yuxin/Desktop/xenobots/sample_data/sample_mixed_5.csv',
+        '/Users/yuxin/Desktop/xenobots/sample_data/sample_mixed_6.csv',
+        '/Users/yuxin/Desktop/xenobots/sample_data/sample_mixed_7.csv',
+        '/Users/yuxin/Desktop/xenobots/sample_data/sample_mixed_8.csv'
     ]
     
 
