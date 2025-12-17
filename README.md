@@ -46,6 +46,18 @@ pip install -r requirements.txt
 * use Noldus software to track and output the CSV file with tracking data from your xenobots
 * this tutorial assumes that you have a single xenobot for each CSV file
 * modify the main function so that the *file_paths* array holds all the file paths to your csv data
+```
+file_paths = [
+    '/Users/yuxin/Desktop/xenobots/sample_data/sample_mixed_1.csv',
+    '/Users/yuxin/Desktop/xenobots/sample_data/sample_mixed_2.csv',
+    '/Users/yuxin/Desktop/xenobots/sample_data/sample_mixed_3.csv',
+    '/Users/yuxin/Desktop/xenobots/sample_data/sample_mixed_4.csv',
+    '/Users/yuxin/Desktop/xenobots/sample_data/sample_mixed_5.csv',
+    '/Users/yuxin/Desktop/xenobots/sample_data/sample_mixed_6.csv',
+    '/Users/yuxin/Desktop/xenobots/sample_data/sample_mixed_7.csv',
+    '/Users/yuxin/Desktop/xenobots/sample_data/sample_mixed_8.csv'
+]
+```
 * the function **load_data** will extract the appropriate columns with data & convert the velocity metrics
 from minutes to seconds
 * in the **main** function, replacing all of the file paths with the file paths of your own CSV files
