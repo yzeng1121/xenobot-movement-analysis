@@ -45,6 +45,7 @@ pip install -r requirements.txt
 **How to run the pipeline:**
 * use Noldus software to track and output the CSV file with tracking data from your xenobots
 * this tutorial assumes that you have a single xenobot for each CSV file
+* modify the main function so that the *file_paths* array holds all the file paths to your csv data
 * the function **load_data** will extract the appropriate columns with data & convert the velocity metrics
 from minutes to seconds
 * in the **main** function, replacing all of the file paths with the file paths of your own CSV files
