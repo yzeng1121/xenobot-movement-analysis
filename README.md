@@ -1,4 +1,4 @@
-## Xenobot Movement State Analysis
+## Xenobot Transition State Analysis
 
 Refurbished pipeline for analyzing changes in xenobot movement after applying stimulus.
 
