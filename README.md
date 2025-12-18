@@ -44,6 +44,8 @@ pip install -r requirements.txt
 
 **How to run the pipeline:**
 * use Noldus software to track and output the CSV file with tracking data from your xenobots
+* in the case that you're unable to obtain the Noldus software you can use a separate tracking software here...
+https://swarm-lab.github.io/trackRai/
 * this tutorial assumes that you have a single xenobot for each CSV file
 * modify the main function so that the *file_paths* array holds all the file paths to your csv data
 ```
